@@ -1,0 +1,17 @@
+{
+  "name": "stylize",
+  "version": "0.0.0",
+  "description": "The core of Stylize",
+  "main": "stylize.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Josh Miller",
+  "license": "GPL-3.0",
+  "dependencies": {
+    "diveSync": "^0.3.0",
+    "fs-extra": "^0.22.1",
+    "lodash": "^3.10.0",
+    "read-yaml": "^1.0.0"
+  }
+}
