@@ -6,7 +6,16 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "Josh Miller",
+  "keywords": [
+    "styleguide",
+    "pattern"
+  ],
+  "author": {
+    "name": "Josh Miller",
+    "email": "josh@josh-miller.me",
+    "url": "http://josh-miller.me/"
+  },
+  "repository": "Josh-Miller/stylize",
   "license": "GPL-3.0",
   "dependencies": {
     "diveSync": "^0.3.0",
