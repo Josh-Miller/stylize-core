@@ -4,11 +4,12 @@
   "description": "The core of Stylize",
   "main": "stylize.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha ./tests/index"
   },
   "keywords": [
     "styleguide",
-    "pattern"
+    "pattern",
+    "stylize"
   ],
   "author": {
     "name": "Josh Miller",
@@ -22,5 +23,9 @@
     "fs-extra": "^0.22.1",
     "lodash": "^3.10.0",
     "read-yaml": "^1.0.0"
+  },
+  "devDependencies": {
+    "chai": "^3.2.0",
+    "mocha": "^2.2.5"
   }
 }

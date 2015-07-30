@@ -88,8 +88,8 @@ Stylize.prototype.getPatterns = function(path, cb) {
   var _stylize = this;
 
   var rootPath = __dirname + '/../../';
-  var headerPath = this.config().hasOwnProperty('headerPath') ? this.config().headerPath : rootPath + _.trim('src/partials/head.hbs'),
-      footerPath = this.config().hasOwnProperty('footerPath') ? this.config().footerPath : rootPath + _.trim('src/partials/footer.hbs');
+  var headerPath = this.config().hasOwnProperty('headerPath') ? this.path + '/' + this.config().headerPath : rootPath + _.trim('src/partials/head.hbs'),
+      footerPath = this.config().hasOwnProperty('footerPath') ? this.path + '/' + this.config().footerPath : rootPath + _.trim('src/partials/footer.hbs');
 
   diveSync(path + '/' + this.config().patternsRoot, function(err, file){
 

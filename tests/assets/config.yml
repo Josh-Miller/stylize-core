@@ -1,0 +1,19 @@
+footerPath: 'mockSrc/footer.hbs'
+headerPath: 'mockSrc/head.hbs'
+patternsRoot: 'mockSrc/mockPatterns'
+
+destination: '/public/patterns'
+data: '/data.yml'
+exportData: '/src/data/drupal.yml'
+exportDestination: '/export/patterns'
+
+compiler: 'handlebars'
+
+plugins:
+  stylize-handlebars:
+  # stylizer.getPatterns:
+  # stylizer.patternData:
+  # stylize-drupalexport:
+  # sassColors/sassColors:
+  #   settings:
+  #     file: './_colors.scss'
