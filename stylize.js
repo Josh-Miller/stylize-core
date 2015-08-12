@@ -113,8 +113,15 @@ Stylize.prototype.getPatterns = function(path, cb) {
     });
 
     pattern.name = _.last(fileNames).split('.')[0];
+    pattern.id = pattern.name;
     pattern.fileName = _.last(fileNames);
     pattern.parents = fileNames.slice(0, -1);
+
+    // URI
+    pattern.uri = _stylize.config().destination + '/' + fileNames.join('/');
+
+    // Categories
+    pattern.category = pattern.parents.join('/');
 
     // Pattern file
     var currentPattern = fs.readFileSync(file, 'utf8');
@@ -124,6 +131,7 @@ Stylize.prototype.getPatterns = function(path, cb) {
 
     // Push it
     pattern.template = currentPattern;
+    pattern.code = currentPattern;
 
     // Future postprocessor of getPatterns()
     _stylize.prePattern(pattern, function(pattern) {
