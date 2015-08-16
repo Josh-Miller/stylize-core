@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/Josh-Miller/stylize.svg)](https://travis-ci.org/Josh-Miller/stylize)
+[![Build Status](https://travis-ci.org/Josh-Miller/stylize-core.svg)](https://travis-ci.org/Josh-Miller/stylize-core)
 
 # Stylize
 
