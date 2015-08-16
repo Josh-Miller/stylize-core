@@ -16,7 +16,7 @@
     "email": "josh@josh-miller.me",
     "url": "http://josh-miller.me/"
   },
-  "repository": "Josh-Miller/stylize",
+  "repository": "Josh-Miller/stylize-core",
   "license": "GPL-3.0",
   "dependencies": {
     "diveSync": "^0.3.0",
