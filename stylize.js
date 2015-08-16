@@ -69,6 +69,19 @@ var Stylize = function() {
   this.partials = {};
 }
 
+Stylize.prototype.getPlugins = function() {
+  _.forEach(_stylize.config().plugins, function(n, key) {
+    var settings = {};
+
+    var plugin = require(path + '/node_modules/' + key);
+    if (n) {
+      settings = n;
+    }
+
+    _stylize.register(key, plugin, settings);
+  });
+}
+
 Stylize.prototype.data = function(patternName, context) {
   var data = readYaml.sync(this.path + this.config().data);
 
