@@ -97,6 +97,57 @@ Stylize.prototype.data = function(patternName, context) {
   return data;
 };
 
+Stylize.prototype.createPattern = function(file) {
+
+  var rootPath = __dirname + '/../../';
+  var headerPath = this.config().hasOwnProperty('headerPath') ? this.path + '/' + this.config().headerPath : rootPath + _.trim('src/partials/head.hbs'),
+      footerPath = this.config().hasOwnProperty('footerPath') ? this.path + '/' + this.config().footerPath : rootPath + _.trim('src/partials/footer.hbs');
+
+  var pattern = new Pattern;
+
+  // Pattern header/footer
+  var headerTemplate = fs.readFileSync(headerPath, 'utf8');
+  var footerTemplate = fs.readFileSync(footerPath, 'utf8');
+  pattern.header = headerTemplate;
+  pattern.footer = footerTemplate;
+
+  // Naming
+  var fileNameArr = file.split('/');
+  var fileNames = _.takeRightWhile(fileNameArr, function(n) {
+    return n != 'patterns';
+  });
+
+  pattern.name = _.last(fileNames).split('.')[0];
+  pattern.id = pattern.name;
+  pattern.fileName = _.last(fileNames);
+  pattern.parents = fileNames.slice(0, -1);
+
+  // URI
+  pattern.uri = this.config().destination + '/' + fileNames.join('/');
+
+  // Categories
+  pattern.category = pattern.parents.join('/');
+
+  // Pattern file
+  var currentPattern = fs.readFileSync(file, 'utf8');
+
+  // Partials
+  this.partials[_.camelCase(pattern.name)] = currentPattern;
+
+  // Push it
+  pattern.template = currentPattern;
+  pattern.code = currentPattern;
+
+
+  var _stylize = this;
+  // Future postprocessor of getPatterns()
+  this.prePattern(pattern, function(pattern) {
+    _stylize.patterns.push(pattern);
+  });
+
+  return pattern;
+};
+
 Stylize.prototype.getPatterns = function(path, cb) {
   var _stylize = this;
 
@@ -111,45 +162,7 @@ Stylize.prototype.getPatterns = function(path, cb) {
       return;
     }
 
-    var pattern = new Pattern;
-
-    // Pattern header/footer
-    var headerTemplate = fs.readFileSync(headerPath, 'utf8');
-    var footerTemplate = fs.readFileSync(footerPath, 'utf8');
-    pattern.header = headerTemplate;
-    pattern.footer = footerTemplate;
-
-    // Naming
-    var fileNameArr = file.split('/');
-    var fileNames = _.takeRightWhile(fileNameArr, function(n) {
-      return n != 'patterns';
-    });
-
-    pattern.name = _.last(fileNames).split('.')[0];
-    pattern.id = pattern.name;
-    pattern.fileName = _.last(fileNames);
-    pattern.parents = fileNames.slice(0, -1);
-
-    // URI
-    pattern.uri = _stylize.config().destination + '/' + fileNames.join('/');
-
-    // Categories
-    pattern.category = pattern.parents.join('/');
-
-    // Pattern file
-    var currentPattern = fs.readFileSync(file, 'utf8');
-
-    // Partials
-    _stylize.partials[_.camelCase(pattern.name)] = currentPattern;
-
-    // Push it
-    pattern.template = currentPattern;
-    pattern.code = currentPattern;
-
-    // Future postprocessor of getPatterns()
-    _stylize.prePattern(pattern, function(pattern) {
-      _stylize.patterns.push(pattern);
-    });
+    _stylize.createPattern(file);
 
   });
 
