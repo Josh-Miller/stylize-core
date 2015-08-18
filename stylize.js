@@ -132,7 +132,7 @@ Stylize.prototype.createPattern = function(file) {
   var currentPattern = fs.readFileSync(file, 'utf8');
 
   // Partials
-  this.partials[_.camelCase(pattern.name)] = currentPattern;
+  this.partials[pattern.name] = currentPattern;
 
   // Push it
   pattern.template = currentPattern;

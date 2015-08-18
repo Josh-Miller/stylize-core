@@ -9,6 +9,10 @@ Core Stylize pattern framework
 
 ### getPatterns(path, callback)
 
+### createPattern(pathToFile)
+
 ### compile(template, partials, data, callback)
 
 ### build(dest, name, data)
+
+### data(patternName, context)
