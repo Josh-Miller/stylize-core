@@ -58,10 +58,10 @@ var Stylize = function() {
     });
   };
 
-  this._export = function(pattern) {
+  this._export = function(pattern, cb) {
     _.forEach(this.plugins, function(n, key) {
       if (n.plugin.extend === '_export') {
-        n.plugin.init(pattern, function(e) {
+        n.plugin.init(pattern, n.settings, function(e) {
           cb(e)
         });
       }
@@ -97,7 +97,7 @@ Stylize.prototype.data = function(patternName, context) {
   });
 
   if (context === 'export') {
-    data = _.assign({}, data, readYaml.sync(this.config().exportData));
+    data = _.assign({}, data, readYaml.sync(this.path + this.config().exportData));
     // data = _.unescape(data);
   }
 
@@ -196,8 +196,10 @@ Stylize.prototype.build = function(dest, name, data) {
   fs.outputFileSync(dest + '/' + name, data);
 };
 
-Stylize.prototype.export = function(pattern) {
-  this._export(pattern);
+Stylize.prototype.export = function(pattern, cb) {
+  this._export(pattern, function() {
+    cb();
+  });
 };
 
 module.exports = Stylize;
