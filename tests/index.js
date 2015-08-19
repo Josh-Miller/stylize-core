@@ -16,13 +16,12 @@ describe('Stylize', function () {
   });
 
   describe('createPattern', function() {
-    it('should return a pattern object')
+    it('should return a pattern object', function() {
       var _stylize = new Stylize;
       _stylize.path = __dirname + '/assets';
 
-      var pattern = _stylize.createPattern(_stylize.path + '/mockSrc/mockPatterns/headings.html');
-      console.log(pattern);
-      pattern.should.be.a('object');
+      _stylize.createPattern(_stylize.path + '/mockSrc/mockPatterns/headings.html').should.be.a('object');
+    });
   });
 
   describe('data', function() {

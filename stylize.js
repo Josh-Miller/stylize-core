@@ -5,6 +5,7 @@ var diveSync = require('diveSync'),
     readYaml = require('read-yaml'),
     _ = require('lodash'),
     Pattern = require('./lib/pattern'),
+    Category = require('./lib/category'),
     events = require('events');
 
 var Stylize = function() {
@@ -28,6 +29,11 @@ var Stylize = function() {
         cb(compiled);
       }
     });
+
+    // Should throw error if no comile plugins found. Need to do object check for val.
+    // if (!_.has(this.plugins, '_compile')) {
+    //   throw new Error('No compile plugins found');
+    // }
   };
 
   this.prePattern = function(pattern, cb) {
@@ -66,6 +72,7 @@ var Stylize = function() {
   };
 
   this.patterns = [];
+  this.categories = [];
   this.partials = {};
 }
 
@@ -104,6 +111,7 @@ Stylize.prototype.createPattern = function(file) {
       footerPath = this.config().hasOwnProperty('footerPath') ? this.path + '/' + this.config().footerPath : rootPath + _.trim('src/partials/footer.hbs');
 
   var pattern = new Pattern;
+  var category = new Category;
 
   // Pattern header/footer
   var headerTemplate = fs.readFileSync(headerPath, 'utf8');
@@ -144,6 +152,13 @@ Stylize.prototype.createPattern = function(file) {
   this.prePattern(pattern, function(pattern) {
     _stylize.patterns.push(pattern);
   });
+
+  // Create category object
+  category.id = pattern.category;
+  category.name = _.capitalize(_.last(pattern.parents));
+  this.categories.push(category);
+
+  this.categories = _.uniq(this.categories, 'name');
 
   return pattern;
 };
