@@ -30,28 +30,41 @@ var Stylize = function() {
       }
     });
 
-    // Should throw error if no comile plugins found. Need to do object check for val.
+    // Should throw error if no compile plugins found. Need to do object check for val.
     // if (!_.has(this.plugins, '_compile')) {
     //   throw new Error('No compile plugins found');
     // }
   };
 
-  this.prePattern = function(pattern, cb) {
+  this._pattern = function(pattern, cb) {
     _.forEach(this.plugins, function(n, key) {
-      if (n.plugin.extend === 'prePattern') {
+      if (n.plugin.extend === '_pattern') {
         n.plugin.init(pattern, function(e) {
           cb(e)
         });
       }
     });
-    if (!_.has(this.plugins, 'prePattern')) {
+    if (!_.has(this.plugins, '_pattern')) {
       cb(pattern);
     }
   };
 
-  this.preData = function(patternName, cb) {
+  this._getPatterns = function(patterns, cb) {
     _.forEach(this.plugins, function(n, key) {
-      if (n.plugin.extend === 'preData') {
+      if (n.plugin.extend === '_getPatterns') {
+        n.plugin.init(patterns, n.settings, function(e) {
+          cb(e)
+        });
+      }
+    });
+    if (!_.has(this.plugins, '_getPatterns')) {
+      cb(patterns);
+    }
+  };
+
+  this._data = function(patternName, cb) {
+    _.forEach(this.plugins, function(n, key) {
+      if (n.plugin.extend === '_data') {
         var patternData = n.plugin.init(patternName);
         cb(patternData);
       }
@@ -92,7 +105,7 @@ Stylize.prototype.getPlugins = function() {
 Stylize.prototype.data = function(patternName, context) {
   var data = readYaml.sync(this.path + this.config().data);
 
-  this.preData(patternName, function(patternData) {
+  this._data(patternName, function(patternData) {
     data = _.assign({}, data, patternData);
   });
 
@@ -149,7 +162,7 @@ Stylize.prototype.createPattern = function(file) {
 
   var _stylize = this;
   // Future postprocessor of getPatterns()
-  this.prePattern(pattern, function(pattern) {
+  this._pattern(pattern, function(pattern) {
     _stylize.patterns.push(pattern);
   });
 
@@ -181,7 +194,9 @@ Stylize.prototype.getPatterns = function(path, cb) {
 
   });
 
-  cb(_stylize.patterns);
+  this._getPatterns(_stylize.patterns, function(patterns) {
+    cb(_stylize.patterns);
+  });
 };
 
 Stylize.prototype.compile = function(template, partials, data, cb) {
