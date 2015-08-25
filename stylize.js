@@ -4,6 +4,7 @@ var diveSync = require('diveSync'),
     fs = require('fs-extra'),
     readYaml = require('read-yaml'),
     _ = require('lodash'),
+    path = require('path'),
     Pattern = require('./lib/pattern'),
     Category = require('./lib/category'),
     events = require('events');
@@ -93,7 +94,7 @@ Stylize.prototype.getPlugins = function() {
   _.forEach(_stylize.config().plugins, function(n, key) {
     var settings = {};
 
-    var plugin = require(path + '/node_modules/' + key);
+    var plugin = require(this.path + '/node_modules/' + key);
     if (n) {
       settings = n;
     }
@@ -119,9 +120,8 @@ Stylize.prototype.data = function(patternName, context) {
 
 Stylize.prototype.createPattern = function(file) {
 
-  var rootPath = __dirname + '/../../';
-  var headerPath = this.config().hasOwnProperty('headerPath') ? this.path + '/' + this.config().headerPath : rootPath + _.trim('src/partials/head.hbs'),
-      footerPath = this.config().hasOwnProperty('footerPath') ? this.path + '/' + this.config().footerPath : rootPath + _.trim('src/partials/footer.hbs');
+  var headerPath = this.config().hasOwnProperty('headerPath') ? path.join(this.path, this.config().headerPath) : path.join(this.path, _.trim('src/partials/head.hbs')),
+      footerPath = this.config().hasOwnProperty('footerPath') ? path.join(this.path, this.config().footerPath) : path.join(this.path, _.trim('src/partials/footer.hbs'));
 
   var pattern = new Pattern;
   var category = new Category;
@@ -176,14 +176,10 @@ Stylize.prototype.createPattern = function(file) {
   return pattern;
 };
 
-Stylize.prototype.getPatterns = function(path, cb) {
+Stylize.prototype.getPatterns = function(cmdPath, cb) {
   var _stylize = this;
 
-  var rootPath = __dirname + '/../../';
-  var headerPath = this.config().hasOwnProperty('headerPath') ? this.path + '/' + this.config().headerPath : rootPath + _.trim('src/partials/head.hbs'),
-      footerPath = this.config().hasOwnProperty('footerPath') ? this.path + '/' + this.config().footerPath : rootPath + _.trim('src/partials/footer.hbs');
-
-  diveSync(path + '/' + this.config().patternsRoot, function(err, file){
+  diveSync(path.join(cmdPath, this.config().patternsRoot), function(err, file){
 
     if(err){
       console.log(err);
@@ -208,7 +204,7 @@ Stylize.prototype.compile = function(template, partials, data, cb) {
 };
 
 Stylize.prototype.build = function(dest, name, data) {
-  fs.outputFileSync(dest + '/' + name, data);
+  fs.outputFileSync(path.join(dest, name), data);
 };
 
 Stylize.prototype.export = function(pattern, cb) {
