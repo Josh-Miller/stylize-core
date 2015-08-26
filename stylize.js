@@ -144,7 +144,7 @@ Stylize.prototype.createPattern = function(file) {
   pattern.parents = fileNames.slice(0, -1);
 
   // URI
-  pattern.uri =  '/pattern/' + fileNames.join('/');
+  pattern.uri =  '/patterns/' + fileNames.join('/');
 
   // Categories
   pattern.category = pattern.parents.join('/');
