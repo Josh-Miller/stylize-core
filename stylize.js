@@ -40,7 +40,7 @@ var Stylize = function() {
   this._pattern = function(pattern, cb) {
     _.forEach(this.plugins, function(n, key) {
       if (n.plugin.extend === '_pattern') {
-        n.plugin.init(pattern, function(e) {
+        n.plugin.init(pattern, n.settings, function(e) {
           cb(e)
         });
       }
@@ -58,7 +58,14 @@ var Stylize = function() {
         });
       }
     });
-    if (!_.has(this.plugins, '_getPatterns')) {
+
+    // Turn this into universal function for plugin checking
+    var pluginHooks = this.plugins.map(function(e, i) {
+      var exists = _.some(e, {extend: '_getPatterns'});
+      if (exists) return true;
+    });
+
+    if (!_.includes(pluginHooks, true)) {
       cb(patterns);
     }
   };
@@ -103,7 +110,7 @@ Stylize.prototype.getPlugins = function() {
   });
 }
 
-Stylize.prototype.data = function(patternName, context) {
+Stylize.prototype.data = function(patternName, context, directData) {
   var data = readYaml.sync(this.path + this.config().data);
 
   this._data(patternName, function(patternData) {
@@ -113,6 +120,10 @@ Stylize.prototype.data = function(patternName, context) {
   if (context === 'export') {
     data = _.assign({}, data, readYaml.sync(this.path + this.config().exportData));
     // data = _.unescape(data);
+  }
+
+  if (directData) {
+    data = _.assign({}, data, directData);
   }
 
   return data;
