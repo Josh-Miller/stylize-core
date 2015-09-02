@@ -7,6 +7,7 @@ var diveSync = require('diveSync'),
     path = require('path'),
     Pattern = require('./lib/pattern'),
     Category = require('./lib/category'),
+    util = require('util'),
     events = require('events');
 
 var Stylize = function() {
@@ -212,6 +213,42 @@ Stylize.prototype.compile = function(template, partials, data, cb) {
     cb(compiled);
   });
 
+};
+
+Stylize.prototype.postCompile = function(pattern, cb) {
+  var _stylize = this;
+  var parse5 = require('parse5');
+
+  var Parser = parse5.Parser;
+  var parser = new Parser();
+  var document = parser.parse(pattern.header);
+
+  function findStylesheet(obj) {
+    obj.forEach(function(value, i) {
+      if (value.nodeName === 'link') {
+        value.attrs.forEach(function(value, i) {
+          if (value.name === 'href') {
+            var patternPath = pattern.uri.split('/');
+            patternPath.pop();
+
+            value.value = path.relative('.'+patternPath.join('/'), value.value);
+          }
+        });
+        return value;
+      }
+      if (value.childNodes) {
+        return findStylesheet(value.childNodes);
+      }
+      return;
+    });
+  }
+
+  var modd = findStylesheet(document.childNodes);
+
+  var serializer = new parse5.Serializer();
+  var html = serializer.serialize(document);
+
+  cb(html);
 };
 
 Stylize.prototype.build = function(dest, name, data) {
