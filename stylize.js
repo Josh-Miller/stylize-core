@@ -223,11 +223,11 @@ Stylize.prototype.postCompile = function(pattern, cb) {
   var parser = new Parser();
   var document = parser.parse(pattern.header);
 
-  function findStylesheet(obj) {
+  function findEl(obj, node, attr) {
     obj.forEach(function(value, i) {
-      if (value.nodeName === 'link') {
+      if (value.nodeName === node) {
         value.attrs.forEach(function(value, i) {
-          if (value.name === 'href') {
+          if (value.name === attr) {
             var patternPath = pattern.uri.split('/');
             patternPath.pop();
 
@@ -237,13 +237,14 @@ Stylize.prototype.postCompile = function(pattern, cb) {
         return value;
       }
       if (value.childNodes) {
-        return findStylesheet(value.childNodes);
+        return findEl(value.childNodes, node, attr);
       }
       return;
     });
   }
 
-  var modd = findStylesheet(document.childNodes);
+  var stylesheets = findEl(document.childNodes, 'link', 'href');
+  var javascripts = findEl(document.childNodes, 'script', 'src');
 
   var serializer = new parse5.Serializer();
   var html = serializer.serialize(document);
