@@ -10,16 +10,37 @@ var diveSync = require('diveSync'),
     util = require('util'),
     events = require('events');
 
+/**
+ * Creates a new Stylize.
+ * @class
+ */
 var Stylize = function() {
 
+  /**
+   * Stores the cli path
+   * @type {String}
+   */
   this.path = '';
 
+  /**
+   * Returns parsed config.yml
+   * @return {object}
+   */
   this.config = function() {
     return readYaml.sync(this.path + '/config.yml');
   }
 
+  /**
+   * A record of all plugins
+   * @type {Array}
+   */
   this.plugins = [];
 
+  /**
+   * @param  {string} name - Extending method
+   * @param  {object} plugin - Loaded module
+   * @param  {array} settings - Plugin settings
+   */
   this.register = function(name, plugin, settings) {
     this.plugins.push({name: name, plugin: plugin, settings: settings});
   }
@@ -111,6 +132,14 @@ Stylize.prototype.getPlugins = function() {
   });
 }
 
+/**
+ * Gets data variables for patterns
+ *
+ * @param  {string} patternName - Name of pattern
+ * @param  {string} context - Compiler context
+ * @param  {object} directData - Data passed in for pattern
+ * @return {object} data
+ */
 Stylize.prototype.data = function(patternName, context, directData) {
   var data = readYaml.sync(this.path + this.config().data);
 
@@ -130,6 +159,12 @@ Stylize.prototype.data = function(patternName, context, directData) {
   return data;
 };
 
+/**
+ * Creates a pattern object
+ *
+ * @param  {string} file - Path to file
+ * @return {object} pattern - Pattern object
+ */
 Stylize.prototype.createPattern = function(file) {
 
   var headerPath = this.config().hasOwnProperty('headerPath') ? path.join(this.path, this.config().headerPath) : path.join(this.path, _.trim('src/partials/head.hbs')),
@@ -188,6 +223,12 @@ Stylize.prototype.createPattern = function(file) {
   return pattern;
 };
 
+/**
+ * Loops through patterns
+ *
+ * @param {string} cmdPath - Root path of command
+ * @param {requestCallback} cb - Returns patterns object
+ */
 Stylize.prototype.getPatterns = function(cmdPath, cb) {
   var _stylize = this;
 
@@ -207,6 +248,15 @@ Stylize.prototype.getPatterns = function(cmdPath, cb) {
   });
 };
 
+/**
+ * Compiles patterns
+ *
+ * @param  {string} template - String of pattern data
+ * @param  {string} partials - String of partial data
+ * @param  {object} data - Data variables for pattern
+ * @param  {Function} cb - When compiliation is complete
+ * @return {string} compiled
+ */
 Stylize.prototype.compile = function(template, partials, data, cb) {
 
   this._compile({template: template, partials: partials, data: data}, function(compiled) {
@@ -252,10 +302,21 @@ Stylize.prototype.postCompile = function(pattern, cb) {
   cb(html);
 };
 
+/**
+ * Writes data to file
+ *
+ * @param  {string} dest - Destination to outputted file
+ * @param  {string} name - File name
+ * @param  {object} data - File contents
+ */
 Stylize.prototype.build = function(dest, name, data) {
   fs.outputFileSync(path.join(dest, name), data);
 };
 
+/**
+ * @param  {object} pattern - Pattern data
+ * @param  {Function} cb - Fires when all export plugins are complete
+ */
 Stylize.prototype.export = function(pattern, cb) {
   this._export(pattern, function() {
     cb();
