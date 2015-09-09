@@ -46,30 +46,37 @@ var Stylize = function() {
   }
 
   this._compile = function(pattern, cb) {
-    _.forEach(this.plugins, function(n, key) {
-      if (n.plugin.extend === '_compile') {
-        var compiled = n.plugin.init(pattern);
-        cb(compiled);
-      }
+
+    var plugins = this.plugins.filter(function(plugin) {
+      return plugin.plugin.extend === '_compile';
     });
 
-    // Should throw error if no compile plugins found. Need to do object check for val.
-    // if (!_.has(this.plugins, '_compile')) {
-    //   throw new Error('No compile plugins found');
-    // }
+    if (plugins.length === 0) {
+      throw new Error('No compile plugins found');
+    }
+
+    var compiled = plugins.map(function(plugin) {
+      var compiled = plugin.plugin.init(pattern);
+      return compiled;
+    });
+
+    return compiled[compiled.length - 1];
   };
 
   this._pattern = function(pattern, cb) {
-    _.forEach(this.plugins, function(n, key) {
-      if (n.plugin.extend === '_pattern') {
-        n.plugin.init(pattern, n.settings, function(e) {
-          cb(e)
-        });
-      }
+    var plugins = this.plugins.filter(function(plugin) {
+      return plugin.plugin.extend === '_pattern';
     });
-    if (!_.has(this.plugins, '_pattern')) {
-      cb(pattern);
+
+    if (plugins.length === 0) {
+      return pattern;
     }
+
+    var pattern = plugins.map(function(plugin) {
+      return plugin.plugin.init(pattern, plugin.settings);
+    });
+
+    return pattern[pattern.length - 1];
   };
 
   this._getPatterns = function(patterns, cb) {
@@ -92,13 +99,15 @@ var Stylize = function() {
     }
   };
 
-  this._data = function(patternName, cb) {
-    _.forEach(this.plugins, function(n, key) {
-      if (n.plugin.extend === '_data') {
-        var patternData = n.plugin.init(patternName);
-        cb(patternData);
-      }
+  this._data = function(patternName) {
+    var plugins = this.plugins.filter(function(plugin) {
+      return plugin.plugin.extend === '_data';
     });
+    var patternData = plugins.map(function(plugin) {
+      return plugin.plugin.init(patternName);
+    });
+
+    return patternData[patternData.length - 1];
   };
 
   this._export = function(pattern, cb) {
@@ -143,9 +152,8 @@ Stylize.prototype.getPlugins = function() {
 Stylize.prototype.data = function(patternName, context, directData) {
   var data = readYaml.sync(this.path + this.config().data);
 
-  this._data(patternName, function(patternData) {
-    data = _.assign({}, data, patternData);
-  });
+  var patternData = this._data(patternName);
+  data = _.assign({}, data, patternData);
 
   if (context === 'export') {
     data = _.assign({}, data, readYaml.sync(this.path + this.config().exportData));
@@ -208,10 +216,7 @@ Stylize.prototype.createPattern = function(file) {
 
 
   var _stylize = this;
-  // Future postprocessor of getPatterns()
-  this._pattern(pattern, function(pattern) {
-    _stylize.patterns.push(pattern);
-  });
+  // _stylize.patterns.push(processedPattern);
 
   // Create category object
   category.id = pattern.category;
@@ -220,7 +225,7 @@ Stylize.prototype.createPattern = function(file) {
 
   this.categories = _.uniq(this.categories, 'name');
 
-  return pattern;
+  return this._pattern(pattern);
 };
 
 /**
@@ -239,8 +244,8 @@ Stylize.prototype.getPatterns = function(cmdPath, cb) {
       return;
     }
 
-    _stylize.createPattern(file);
-
+    var pattern = _stylize.createPattern(file);
+    _stylize.patterns.push(pattern);
   });
 
   this._getPatterns(_stylize.patterns, function(patterns) {
@@ -259,13 +264,17 @@ Stylize.prototype.getPatterns = function(cmdPath, cb) {
  */
 Stylize.prototype.compile = function(template, partials, data, cb) {
 
-  this._compile({template: template, partials: partials, data: data}, function(compiled) {
-    cb(compiled);
-  });
+  var compiled = this._compile({template: template, partials: partials, data: data});
 
+  return compiled;
 };
 
-Stylize.prototype.postCompile = function(pattern, cb) {
+/**
+ * Parses compiled header html to create relative paths
+ * @param  {object} pattern - Pattern object
+ * @return {string} Return modified html
+ */
+Stylize.prototype.postCompile = function(pattern) {
   var _stylize = this;
   var parse5 = require('parse5');
 
@@ -299,7 +308,7 @@ Stylize.prototype.postCompile = function(pattern, cb) {
   var serializer = new parse5.Serializer();
   var html = serializer.serialize(document);
 
-  cb(html);
+  return html;
 };
 
 /**
