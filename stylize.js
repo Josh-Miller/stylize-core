@@ -45,7 +45,12 @@ var Stylize = function() {
     this.plugins.push({name: name, plugin: plugin, settings: settings});
   }
 
-  this._compile = function(pattern, cb) {
+  /**
+   * A compile method for plugins
+   * @param  {object} pattern - Pattern object
+   * @return {object} Return pattern after being run through plugins
+   */
+  this._compile = function(pattern) {
 
     var plugins = this.plugins.filter(function(plugin) {
       return plugin.plugin.extend === '_compile';
