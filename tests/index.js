@@ -42,23 +42,14 @@ describe('Stylize', function () {
     });
   });
 
-  // WIP: tests for API functions
-  // describe('_compile', function() {
-  //   var _stylize = new Stylize;
-
-  //   _.forEach(_stylize.config().plugins, function(n, key) {
-  //     var settings = {};
-
-  //     var plugin = require('../plugins/' + key);
-  //     if (n) {
-  //       settings = n;
-  //     }
-
-  //     _stylize.register(key, plugin, settings);
-  //   });
-
-  //   _stylize._compile({template: template, partials: partials, data: data}, function(compiled) {
-  //     cb(compiled);
+  // describe('compile', function() {
+  //   it('should throw an error if no compile plugins',function(){
+  //     var _stylize = new Stylize;
+  //     _stylize.path = __dirname + '/assets';
+  //     _stylize.getPlugins();
+  //     console.log(_stylize.compile('template string', 'partials string', {}));
+  //     _stylize.compile('template string', 'partials string', {}).should.throw(Error, /No compile plugins found/);
   //   });
   // });
+
 });

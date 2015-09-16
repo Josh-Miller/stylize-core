@@ -134,10 +134,12 @@ var Stylize = function() {
 }
 
 Stylize.prototype.getPlugins = function() {
+
+  var _stylize = this;
   _.forEach(_stylize.config().plugins, function(n, key) {
     var settings = {};
 
-    var plugin = require(this.path + '/node_modules/' + key);
+    var plugin = require(_stylize.path + '/node_modules/' + key);
     if (n) {
       settings = n;
     }
@@ -264,12 +266,16 @@ Stylize.prototype.getPatterns = function(cmdPath, cb) {
  * @param  {string} template - String of pattern data
  * @param  {string} partials - String of partial data
  * @param  {object} data - Data variables for pattern
- * @param  {Function} cb - When compiliation is complete
  * @return {string} compiled
  */
-Stylize.prototype.compile = function(template, partials, data, cb) {
+Stylize.prototype.compile = function(template, partials, data) {
 
-  var compiled = this._compile({template: template, partials: partials, data: data});
+  try {
+    var compiled = this._compile({template: template, partials: partials, data: data});
+  }
+  catch(err) {
+    throw new Error(err);
+  }
 
   return compiled;
 };
