@@ -1,14 +1,12 @@
-"use strict";
+'use strict';
 
 var diveSync = require('diveSync'),
-    fs = require('fs-extra'),
-    readYaml = require('read-yaml'),
-    _ = require('lodash'),
-    path = require('path'),
-    Pattern = require('./lib/pattern'),
-    Category = require('./lib/category'),
-    util = require('util'),
-    events = require('events');
+  fs = require('fs-extra'),
+  readYaml = require('read-yaml'),
+  _ = require('lodash'),
+  path = require('path'),
+  Pattern = require('./lib/pattern'),
+  Category = require('./lib/category');
 
 /**
  * Creates a new Stylize.
@@ -28,7 +26,7 @@ var Stylize = function() {
    */
   this.config = function() {
     return readYaml.sync(this.path + '/config.yml');
-  }
+  };
 
   /**
    * A record of all plugins
@@ -43,7 +41,7 @@ var Stylize = function() {
    */
   this.register = function(name, plugin, settings) {
     this.plugins.push({name: name, plugin: plugin, settings: settings});
-  }
+  };
 
   /**
    * A compile method for plugins
@@ -61,14 +59,14 @@ var Stylize = function() {
     }
 
     var compiled = plugins.map(function(plugin) {
-      var compiled = plugin.plugin.init(pattern);
+      var compiled = plugin.plugin.init(pattern, plugin.settings);
       return compiled;
     });
 
     return compiled[compiled.length - 1];
   };
 
-  this._pattern = function(pattern, cb) {
+  this._pattern = function(pattern) {
     var plugins = this.plugins.filter(function(plugin) {
       return plugin.plugin.extend === '_pattern';
     });
@@ -77,24 +75,26 @@ var Stylize = function() {
       return pattern;
     }
 
-    var pattern = plugins.map(function(plugin) {
+    var _pattern = plugins.map(function(plugin) {
       return plugin.plugin.init(pattern, plugin.settings);
     });
 
-    return pattern[pattern.length - 1];
+    return _pattern[_pattern.length - 1];
   };
 
   this._getPatterns = function(patterns, cb) {
-    _.forEach(this.plugins, function(n, key) {
+    var _stylize = this;
+    _.forEach(this.plugins, function(n) {
       if (n.plugin.extend === '_getPatterns') {
+        n.settings.projectPath = _stylize.path;
         n.plugin.init(patterns, n.settings, function(e) {
-          cb(e)
+          cb(e);
         });
       }
     });
 
     // Turn this into universal function for plugin checking
-    var pluginHooks = this.plugins.map(function(e, i) {
+    var pluginHooks = this.plugins.map(function(e) {
       var exists = _.some(e, {extend: '_getPatterns'});
       if (exists) return true;
     });
@@ -116,10 +116,10 @@ var Stylize = function() {
   };
 
   this._export = function(pattern, cb) {
-    _.forEach(this.plugins, function(n, key) {
+    _.forEach(this.plugins, function(n) {
       if (n.plugin.extend === '_export') {
         n.plugin.init(pattern, n.settings, function(e) {
-          cb(e)
+          cb(e);
         });
       }
     });
@@ -131,7 +131,7 @@ var Stylize = function() {
   this.patterns = [];
   this.categories = [];
   this.partials = {};
-}
+};
 
 Stylize.prototype.getPlugins = function() {
 
@@ -146,7 +146,32 @@ Stylize.prototype.getPlugins = function() {
 
     _stylize.register(key, plugin, settings);
   });
-}
+};
+
+/**
+ * Gets pattern specific data files
+ *
+ * @param  {string} patternName Name of pattern
+ * @return {object}             Specific patterns data
+ */
+Stylize.prototype.patternData = function(patternName) {
+
+  var patternData;
+
+  diveSync(path.join(this.path, this.config().dataPatterns), function(err, file){
+
+    if(err){
+      throw err;
+    }
+    var fileArray = file.split('/');
+    var fileName = _.last(fileArray).split('.')[0];
+
+    if (fileName === patternName) {
+      patternData = readYaml.sync(file);
+    }
+  });
+  return patternData;
+};
 
 /**
  * Gets data variables for patterns
@@ -159,8 +184,15 @@ Stylize.prototype.getPlugins = function() {
 Stylize.prototype.data = function(patternName, context, directData) {
   var data = readYaml.sync(this.path + this.config().data);
 
-  var patternData = this._data(patternName);
-  data = _.assign({}, data, patternData);
+  // Get Plugin data
+  var pluginData = this._data(patternName);
+  data = _.assign({}, data, pluginData);
+
+  // Get pattern specific data
+  if (this.config().dataPatterns) {
+    var patternData = this.patternData(patternName);
+    data = _.assign({}, data, patternData);
+  }
 
   if (context === 'export') {
     data = _.assign({}, data, readYaml.sync(this.path + this.config().exportData));
@@ -183,7 +215,7 @@ Stylize.prototype.data = function(patternName, context, directData) {
 Stylize.prototype.createPattern = function(file) {
 
   var headerPath = this.config().hasOwnProperty('headerPath') ? path.join(this.path, this.config().headerPath) : path.join(this.path, _.trim('src/partials/head.hbs')),
-      footerPath = this.config().hasOwnProperty('footerPath') ? path.join(this.path, this.config().footerPath) : path.join(this.path, _.trim('src/partials/footer.hbs'));
+    footerPath = this.config().hasOwnProperty('footerPath') ? path.join(this.path, this.config().footerPath) : path.join(this.path, _.trim('src/partials/footer.hbs'));
 
   var pattern = new Pattern;
   var category = new Category;
@@ -221,10 +253,6 @@ Stylize.prototype.createPattern = function(file) {
   pattern.template = currentPattern;
   pattern.code = currentPattern;
 
-
-  var _stylize = this;
-  // _stylize.patterns.push(processedPattern);
-
   // Create category object
   category.id = pattern.category;
   category.name = _.capitalize(_.last(pattern.parents));
@@ -247,15 +275,14 @@ Stylize.prototype.getPatterns = function(cmdPath, cb) {
   diveSync(path.join(cmdPath, this.config().patternsRoot), function(err, file){
 
     if(err){
-      console.log(err);
-      return;
+      throw err;
     }
 
     var pattern = _stylize.createPattern(file);
     _stylize.patterns.push(pattern);
   });
 
-  this._getPatterns(_stylize.patterns, function(patterns) {
+  this._getPatterns(_stylize.patterns, function() {
     cb(_stylize.patterns);
   });
 };
@@ -270,12 +297,7 @@ Stylize.prototype.getPatterns = function(cmdPath, cb) {
  */
 Stylize.prototype.compile = function(template, partials, data) {
 
-  try {
-    var compiled = this._compile({template: template, partials: partials, data: data});
-  }
-  catch(err) {
-    throw new Error(err);
-  }
+  var compiled = this._compile({template: template, partials: partials, data: data});
 
   return compiled;
 };
@@ -286,7 +308,6 @@ Stylize.prototype.compile = function(template, partials, data) {
  * @return {string} Return modified html
  */
 Stylize.prototype.postCompile = function(pattern) {
-  var _stylize = this;
   var parse5 = require('parse5');
 
   var Parser = parse5.Parser;
@@ -294,9 +315,9 @@ Stylize.prototype.postCompile = function(pattern) {
   var document = parser.parse(pattern.header);
 
   function findEl(obj, node, attr) {
-    obj.forEach(function(value, i) {
+    obj.forEach(function(value) {
       if (value.nodeName === node) {
-        value.attrs.forEach(function(value, i) {
+        value.attrs.forEach(function(value) {
           if (value.name === attr) {
             var patternPath = pattern.uri.split('/');
             patternPath.pop();
@@ -313,8 +334,8 @@ Stylize.prototype.postCompile = function(pattern) {
     });
   }
 
-  var stylesheets = findEl(document.childNodes, 'link', 'href');
-  var javascripts = findEl(document.childNodes, 'script', 'src');
+  findEl(document.childNodes, 'link', 'href');
+  findEl(document.childNodes, 'script', 'src');
 
   var serializer = new parse5.Serializer();
   var html = serializer.serialize(document);
