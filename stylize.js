@@ -139,7 +139,7 @@ Stylize.prototype.getPlugins = function() {
   _.forEach(_stylize.config().plugins, function(n, key) {
     var settings = {};
 
-    var plugin = require(_stylize.path + '/node_modules/' + key);
+    var plugin = require(path.join(_stylize.path, '/node_modules/') + key);
     if (n) {
       settings = n;
     }
