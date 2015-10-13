@@ -116,16 +116,19 @@ var Stylize = function() {
   };
 
   this._export = function(pattern, cb) {
-    _.forEach(this.plugins, function(n) {
-      if (n.plugin.extend === '_export') {
-        n.plugin.init(pattern, n.settings, function(e) {
-          cb(e);
-        });
-      }
+    var plugins = this.plugins.filter(function(plugin) {
+      return plugin.plugin.extend === '_export';
     });
-    // if (!_.has(this.plugins, '_export')) {
-    //   throw new Error('No export plugins found');
-    // }
+
+    if (plugins.length === 0) {
+      cb(pattern);
+    }
+
+    var exportedPattern = plugins.map(function(plugin) {
+      plugin.plugin.init(pattern, plugin.settings, function(pattern) {
+        cb(pattern);
+      });
+    });
   };
 
   this.patterns = [];
@@ -359,8 +362,8 @@ Stylize.prototype.build = function(dest, name, data) {
  * @param  {Function} cb - Fires when all export plugins are complete
  */
 Stylize.prototype.export = function(pattern, cb) {
-  this._export(pattern, function() {
-    cb();
+  this._export(pattern, function(pattern) {
+    cb(pattern);
   });
 };
 
