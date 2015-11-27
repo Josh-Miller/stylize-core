@@ -6,6 +6,7 @@ destination: '/public/patterns'
 data: '/data.yml'
 exportData: '/src/data/drupal.yml'
 exportDestination: '/export/patterns'
+dataPatterns: '/mockSrc/data'
 
 compiler: 'handlebars'
 

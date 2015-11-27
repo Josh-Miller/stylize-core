@@ -173,6 +173,7 @@ Stylize.prototype.patternData = function(patternName) {
       patternData = readYaml.sync(file);
     }
   });
+
   return patternData;
 };
 
@@ -241,7 +242,7 @@ Stylize.prototype.createPattern = function(file) {
   pattern.parents = fileNames.slice(0, -1);
 
   // URI
-  pattern.uri = this.config().destination + '/' + fileNames.join('/');
+  pattern.uri = path.join(this.config().destination, fileNames.join('/'));
 
   // Categories
   pattern.category = pattern.parents.join('/');
@@ -351,7 +352,7 @@ Stylize.prototype.postCompile = function(pattern) {
  *
  * @param  {string} dest - Destination to outputted file
  * @param  {string} name - File name
- * @param  {object} data - File contents
+ * @param  {string} data - File contents
  */
 Stylize.prototype.build = function(dest, name, data) {
   fs.outputFileSync(path.join(dest, name), data);
